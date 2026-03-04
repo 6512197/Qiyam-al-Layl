@@ -1,4 +1,4 @@
-# Third-Point-of-Night — README
+# 9iyam alayl — README
 
 THIS A RAMADAN PROJECT :
  A small webpage that computes a precise "third" point of the night for any location and date (works in browser or Node).  
