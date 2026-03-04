@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qiyam al-Layl · Last Third of the Night</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;600&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+<script src="Js/Astropres.js"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="sky"></div>
+<canvas id="stars-canvas"></canvas>
+
+<div id="moon">
+  <div class="moon-body">
+    <div class="moon-crater"></div>
+    <div class="moon-crater"></div>
+    <div class="moon-crater"></div>
+  </div>
+  <div id="moon-phase-label">MOON</div>
+</div>
+
+<div id="app">
+
+  <header>
+    <div class="arabic-title">قِيَامُ اللَّيْل</div>
+    <div class="en-title">Qiyam al-Layl · Night Vigil Calculator</div>
+    <div class="divider"><span class="divider-ornament">✦</span></div>
+    <div class="hadith">
+      "Our Lord descends every night to the lowest heaven when the last third of the night remains, and says: Who is calling upon Me that I may answer him?"
+    </div>
+    <div class="hadith-source">Sahih al-Bukhari 1145 · Sahih Muslim 758</div>
+  </header>
+
+  <!-- Location Card -->
+  <div class="card">
+    <div class="card-title">⟡ Location</div>
+    <div class="grid-2">
+      <div class="field city-wrap">
+        <label>City Search</label>
+        <input type="text" id="city-input" placeholder="e.g. Makkah, London…" autocomplete="off">
+        <div id="city-suggestions"></div>
+      </div>
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="date-input">
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top:16px">
+      <div class="field">
+        <label>Latitude</label>
+        <input type="number" id="lat-input" placeholder="e.g. 21.3891" step="0.0001" min="-90" max="90">
+      </div>
+      <div class="field">
+        <label>Longitude</label>
+        <input type="number" id="lon-input" placeholder="e.g. 39.8579" step="0.0001" min="-180" max="180">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="geolocate()">⊕ Use My Location</button>
+    </div>
+  </div>
+
+  <!-- Calculation Settings Card -->
+  <div class="card">
+    <div class="card-title">⟡ Calculation Method</div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Fajr Angle Method</label>
+        <select id="method-select" onchange="onMethodChange()">
+          <option value="MWL">Muslim World League (18°)</option>
+          <option value="ISNA">ISNA — North America (15°)</option>
+          <option value="Egypt">Egyptian Authority (19.5°)</option>
+          <option value="UmmAlQura">Umm al-Qura, Makkah</option>
+          <option value="Karachi">University of Karachi (18°)</option>
+          <option value="Custom">Custom Angle…</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>High Latitude Adjustment</label>
+        <select id="highlat-select">
+          <option value="NightMiddle">Middle of the Night</option>
+          <option value="OneSeventh">One Seventh of Night</option>
+          <option value="AngleBased">Angle-Based</option>
+          <option value="None">No Adjustment (raw)</option>
+        </select>
+      </div>
+    </div>
+    <div class="field" id="custom-angle-row">
+      <label>Custom Fajr Angle (degrees below horizon)</label>
+      <input type="number" id="custom-angle" placeholder="e.g. 18" min="1" max="30" step="0.5" value="18">
+    </div>
+  </div>
+
+  <!-- Calculate Button -->
+  <div style="text-align:center; margin: 10px 0 24px;">
+    <button class="btn btn-primary" onclick="calculate()" style="font-size:13px;padding:15px 44px;letter-spacing:0.28em;">
+      ◈ CALCULATE LAST THIRD
+    </button>
+    <div id="error-msg"></div>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+
+    <div class="card">
+      <div class="toggle-row">
+        <span class="toggle-label">Format</span>
+        <div class="toggle">
+          <button id="fmt12" class="active" onclick="setFormat(12)">12h</button>
+          <button id="fmt24" onclick="setFormat(24)">24h</button>
+        </div>
+      </div>
+
+      <div class="result-hero">
+        <div class="result-label">Last Third of the Night Begins</div>
+        <div class="result-time" id="last-third-time">—</div>
+        <div class="result-ampm" id="last-third-ampm"></div>
+        <div class="result-tz" id="result-tz"></div>
+        <div id="method-badge-wrap" style="display:flex;justify-content:center;margin-top:12px;"></div>
+      </div>
+
+      <div class="timeline-wrap">
+        <div class="timeline-bar" id="timeline-bar">
+          <div class="timeline-third t-first" id="t-first"></div>
+          <div class="timeline-third t-second" id="t-second"></div>
+          <div class="timeline-third t-last" id="t-last"></div>
+          <div class="timeline-marker" id="now-marker" style="display:none"></div>
+        </div>
+        <div class="timeline-labels">
+          <span id="tl-maghrib">Maghrib</span>
+          <span style="opacity:0.5">1st ✦ 2nd ✦ Last Third</span>
+          <span id="tl-fajr">Fajr</span>
+        </div>
+      </div>
+
+      <div class="warning-banner" id="warning-banner"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⟡ Night Times</div>
+      <div class="times-grid">
+        <div class="time-cell" id="cell-maghrib">
+          <div class="time-cell-label">Maghrib · Sunset</div>
+          <div class="time-cell-value" id="val-maghrib">—</div>
+          <div class="time-cell-sub">Night begins</div>
+        </div>
+        <div class="time-cell" id="cell-midnight">
+          <div class="time-cell-label">Islamic Midnight</div>
+          <div class="time-cell-value" id="val-midnight">—</div>
+          <div class="time-cell-sub">Midpoint of night</div>
+        </div>
+        <div class="time-cell highlight" id="cell-lastthird">
+          <div class="time-cell-label">Last Third Begins</div>
+          <div class="time-cell-value" id="val-lastthird">—</div>
+          <div class="time-cell-sub">Tahajjud time</div>
+        </div>
+        <div class="time-cell" id="cell-fajr">
+          <div class="time-cell-label">Fajr · True Dawn</div>
+          <div class="time-cell-value" id="val-fajr">—</div>
+          <div class="time-cell-sub">Night ends</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⟡ Night Duration</div>
+      <div class="duration-row">
+        <div class="dur-item">
+          <div class="dur-value" id="dur-total">—</div>
+          <div class="dur-label">Total Night</div>
+        </div>
+        <div class="dur-sep">⁄</div>
+        <div class="dur-item">
+          <div class="dur-value" id="dur-third">—</div>
+          <div class="dur-label">Each Third</div>
+        </div>
+        <div class="dur-sep">·</div>
+        <div class="dur-item">
+          <div class="dur-value" id="dur-remaining">—</div>
+          <div class="dur-label">Until Fajr</div>
+        </div>
+      </div>
+
+      <div id="countdown-wrap">
+        <div class="countdown-label">Countdown to Last Third</div>
+        <div id="countdown-display">—</div>
+        <div id="countdown-status"></div>
+      </div>
+    </div>
+
+  </div><!-- /results -->
+
+</div><!-- /app -->
+
+<!-- Main JavaScript logic for handling user input, calculations, and UI updates -->
+<script src="Js/calculate.js"></script>
+</body>
+</html>
