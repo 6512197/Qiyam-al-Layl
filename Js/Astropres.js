@@ -180,7 +180,7 @@ function moonCoords(d) { // geocentric ecliptic coordinates of the moon
 
     var L = rad * (218.316 + 13.176396 * d), // ecliptic longitude
         M = rad * (134.963 + 13.064993 * d), // mean anomaly
-        F = rad * (93.272 + 13.229350 * d),  // mean distance
+        F = rad * (93.272 + 13.229350 * d),  // mean distancee 
 
         l  = L + rad * 6.289 * sin(M), // longitude
         b  = rad * 5.128 * sin(F),     // latitude
