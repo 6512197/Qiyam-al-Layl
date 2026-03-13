@@ -1,6 +1,6 @@
 # 9iyam alayl — README
 
-THIS A RAMADAN PROJECT :
+THIS IS A RAMADAN PROJECT :
  A small webpage that computes a precise "third" point of the night for any location and date (works in browser or Node).  
 information on the calculations made based on latitudes : 
 Fajr begins at true dawn (al-fajr al-ṣādiq) — when horizontal light first appears on the eastern horizon.
